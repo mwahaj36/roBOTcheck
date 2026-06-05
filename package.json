@@ -1,0 +1,24 @@
+{
+  "name": "robotcheck",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private":true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwahaj36/roBOTcheck.git"
+  },
+  "workspaces":["packages/*","shared"],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mwahaj36/roBOTcheck/issues"
+  },
+  "homepage": "https://github.com/mwahaj36/roBOTcheck#readme"
+  
+}
