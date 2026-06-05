@@ -3,3 +3,4 @@ robotcheck-plan (1).md
 node_modules/
 dist/
 .env
+checkpoint.md
