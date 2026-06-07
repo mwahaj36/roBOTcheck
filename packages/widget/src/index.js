@@ -26,8 +26,22 @@ function initHost(){
     frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms')
     frame.style.border='none'
     frame.style.width='320px'
-    frame.style.height='150px'
+    frame.style.height='210px'
     frame.style.overflow='hidden'
+
+    let hp = document.createElement('input')
+    hp.type = 'text'
+    hp.name = 'confirmEmail'
+    hp.setAttribute('autocomplete', 'off')
+    hp.tabIndex = -1
+    hp.style.position = 'absolute'
+    hp.style.left = '-9999px'
+    hp.style.opacity = '0'
+    hp.style.width = '0'
+    hp.style.height = '0'
+    hp.style.border = 'none'
+
+    robot.appendChild(hp)
     robot.appendChild(frame)
 
     window.addEventListener('message',(e)=>{
@@ -36,6 +50,10 @@ function initHost(){
             return
         }
         if(e.data.type==='robotcheck:pass'){
+            if(hp && hp.value !== ''){
+                console.warn("Honeypot field filled. Pass token blocked.")
+                return
+            }
             currentVerificationToken=e.data.token;
             callbacks.forEach(i => {
                 i(currentVerificationToken)
@@ -76,7 +94,26 @@ function initSandbox(){
     let origin= params.get('origin')
 
     let challengeToken=null;
-    const container=document.body
+    
+    document.body.innerHTML = ''
+    const container = document.createElement('div')
+    container.style.height = '175px'
+    document.body.appendChild(container)
+
+    let branding = document.createElement('div')
+    branding.style.marginTop = '4px'
+    branding.style.fontSize = '10px'
+    
+    let link = document.createElement('a')
+    link.href = 'https://robotcheck.dev'
+    link.target = '_blank'
+    link.innerText = 'protected by roBOTcheck™'
+    link.style.color = '#8b949e'
+    link.style.textDecoration = 'none'
+    
+    branding.appendChild(link)
+    document.body.appendChild(branding)
+
     startChallenge()
     function runRound(round){
         switch(round){
@@ -120,7 +157,7 @@ function initSandbox(){
                 const title = document.createElement('h1');
                 title.textContent = 'Welcome, Human.';
                 const desc = document.createElement('p');
-                desc.textContent = "Your delightfully slow, inconsistent, and error-prone behaviour has been verified. You may proceed.";
+                desc.textContent = "Your slow, inconsistent, and error-prone behaviour has been verified. You may proceed.";
                 container.appendChild(title);
                 container.appendChild(desc);
 
