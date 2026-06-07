@@ -8,13 +8,16 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "npm run build --workspace=packages/widget",
     "dev": "npm run dev --workspace=packages/widget",
-    "docker:build": "docker build -t robotcheck-server packages/server"
+    "docker:build": "docker build -t robotcheck-server packages/server",
+    "demo:dev": "npm run dev --workspace=demo",
+    "demo:build": "npm run build --workspace=demo",
+    "demo:start": "npm run start --workspace=demo"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mwahaj36/roBOTcheck.git"
   },
-  "workspaces":["packages/*","shared"],
+  "workspaces":["packages/*","shared","demo"],
   "keywords": [],
   "author": "",
   "license": "ISC",

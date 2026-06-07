@@ -44,7 +44,7 @@ function renderWidgetHtml(req, res){
         }
         textarea {
             width: 95%;
-            height: 50px;
+            height: 70px;
             background: #161b22;
             color: #c9d1d9;
             border: 1px solid #30363d;
@@ -60,15 +60,15 @@ function renderWidgetHtml(req, res){
         .tile-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 8px;
         }
         .tile {
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 6px;
-            padding: 6px 4px;
-            font-size: 11px;
+            padding: 10px 6px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s;
             overflow: hidden;
@@ -82,7 +82,7 @@ function renderWidgetHtml(req, res){
         }
         .reaction-box {
             width: 95%;
-            height: 50px;
+            height: 70px;
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 6px;

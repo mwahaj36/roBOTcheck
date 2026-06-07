@@ -25,8 +25,8 @@ function initHost(){
     frame.src=`${API_URL}/widget?sitekey=${sitekey}&origin=${encodeURIComponent(window.location.origin)}`
     frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms')
     frame.style.border='none'
-    frame.style.width='320px'
-    frame.style.height='210px'
+    frame.style.width='380px'
+    frame.style.height='280px'
     frame.style.overflow='hidden'
 
     let hp = document.createElement('input')
@@ -97,7 +97,7 @@ function initSandbox(){
     
     document.body.innerHTML = ''
     const container = document.createElement('div')
-    container.style.height = '175px'
+    container.style.height = '240px'
     document.body.appendChild(container)
 
     let branding = document.createElement('div')
@@ -107,7 +107,7 @@ function initSandbox(){
     let link = document.createElement('a')
     link.href = 'https://robotcheck.dev'
     link.target = '_blank'
-    link.innerText = 'protected by roBOTcheck™'
+    link.innerText = 'protected by roBOTcheck'
     link.style.color = '#8b949e'
     link.style.textDecoration = 'none'
     

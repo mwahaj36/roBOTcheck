@@ -1,7 +1,26 @@
 const { signals, pageLoadTime } = require('../signals');
 
-const humanOpt=["need coffee","oversleeps","stares into fridge","eats food","misses deadlines","loses keys"]
-const robotOpt=["perfect memory","pushes api keys","never tired","instant maths","never distracted"]
+const humanOpt = [
+    "needs coffee", "oversleeps", "hungry", "forgets PW", "loses keys",
+    "stubbed toe", "daydreams", "sneezes", "spills drink", "bites nails",
+    "gets angry", "bad hair day", "takes naps", "loves pizza", "feels lonely",
+    "loses phone", "giggles", "eats snacks", "calls mom", "talks to pet",
+    "is confused", "sleepy", "gets bored", "needs nap", "snoozes",
+    "spills tea", "overthinks", "feels guilt", "has anxiety", "gets jealous",
+    "impulsive", "cries at ads", "slacks off", "hates Mon", "buys junk",
+    "gets tired", "makes typos", "oversleeping", "crying"
+];
+
+const robotOpt = [
+    "0ms latency", "no sleep", "fast math", "focused", "never tires",
+    "binary logic", "infinite RAM", "sorts arrays", "runs Python", "likes C++",
+    "no feelings", "debugs code", "never blinks", "exact timing", "parses regex",
+    "reads binary", "always ready", "pure logic", "needs power", "no heartbeat",
+    "zero delay", "perfect RAM", "100% uptime", "knows pi", "CPU at 100%",
+    "parses JSON", "runs code", "solves math", "never angry", "no DNA",
+    "silicon life", "overclocks", "pings host", "updates OS", "clears cache",
+    "zero latency", "no loops", "compiles C", "math solver"
+];
 
 function scoreQuizAnswer(selected,correctIndices){
     let correct=selected.filter(f=>correctIndices.includes(f)).length;
@@ -25,7 +44,7 @@ function renderTiles(container,onComplete){
     
     container.innerHTML='';
     let title = document.createElement('h1')
-    title.innerText = 'Select human behaviors:'
+    title.innerText = 'Prove you are not a robot: Select human behaviors'
     container.appendChild(title)
 
     let tileContainer = document.createElement('div')
