@@ -20,7 +20,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
-          context: ./packages/server
-          file: ./packages/server/Dockerfile
+          context: .
+          file: ./Dockerfile
           push: true
           tags: mwahaj36/robotcheck:latest

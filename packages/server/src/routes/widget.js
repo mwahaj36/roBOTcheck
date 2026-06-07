@@ -102,7 +102,7 @@ function renderWidgetHtml(req, res){
     </style>
 </head>
 <body>
-    <script src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"></script>
+    <script src="/dist/widget.js"></script>
 </body>
 </html>
     `)

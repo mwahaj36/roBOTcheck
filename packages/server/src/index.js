@@ -1,5 +1,6 @@
 const express = require('express')
 const path = require('path')
+const fs = require('fs')
 
 const { renderWidgetHtml } = require('./routes/widget')
 const { challengeRoute } = require('./routes/challenge')
@@ -35,7 +36,13 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use('/dist', express.static(path.join(__dirname, '../../widget/dist')))
+// In Docker: dist is bundled at /app/dist (multi-stage build)
+// In local dev: dist is at packages/widget/dist (monorepo)
+const dockerDist = path.join(__dirname, '../dist')
+const localDist = path.join(__dirname, '../../widget/dist')
+const distPath = fs.existsSync(dockerDist) ? dockerDist : localDist
+app.use('/dist', express.static(distPath))
+
 
 app.get('/widget', renderWidgetHtml)
 app.get('/challenge', challengeRoute)
