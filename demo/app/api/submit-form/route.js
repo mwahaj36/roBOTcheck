@@ -50,7 +50,10 @@ export async function POST(request) {
   } catch (err) {
     console.error('VERIFY FETCH ERROR:', err);
     return NextResponse.json(
-      { success: false, error: 'Could not connect to verification server: ' + err.message },
+      { 
+        success: false, 
+        error: `Fetch failed! URL was: "${process.env.ROBOTCHECK_API_URL}". Error message: ${err.message}` 
+      },
       { status: 500 }
     )
   }
