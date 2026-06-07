@@ -24,6 +24,13 @@ function renderTiles(container,onComplete){
     }
     
     container.innerHTML='';
+    let title = document.createElement('h1')
+    title.innerText = 'Select human behaviors:'
+    container.appendChild(title)
+
+    let tileContainer = document.createElement('div')
+    tileContainer.className = 'tile-container'
+    container.appendChild(tileContainer)
     let selected=[];
     let clickTargets=[];
     let lastClickTime = pageLoadTime;
@@ -59,7 +66,7 @@ function renderTiles(container,onComplete){
         })
         
 
-        container.appendChild(tile);
+        tileContainer.appendChild(tile);
     })
     let verifyBtn=document.createElement('button')
     verifyBtn.innerText='Verify';
