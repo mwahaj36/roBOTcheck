@@ -11,7 +11,7 @@ export default function Home() {
   useEffect(() => {
     // Expose the global API URL config to the widget script
     window.ROBOTCHECK_CONFIG = {
-      apiUrl: 'http://localhost:3000'
+      apiUrl: process.env.NEXT_PUBLIC_ROBOTCHECK_URL
     }
 
     // Set up a listener for the widget instance to load and bind
@@ -115,7 +115,7 @@ export default function Home() {
       </div>
 
       <Script 
-        src="http://localhost:3000/dist/widget.js" 
+        src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"
         strategy="afterInteractive" 
       />
     </>

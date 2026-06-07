@@ -21,12 +21,12 @@ export async function POST(request) {
       )
     }
 
-    // 3. Forward to local verification backend
-    const r = await fetch('http://localhost:3000/verify', {
+    // 3. Forward to verification backend
+    const r = await fetch(`${process.env.ROBOTCHECK_API_URL}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        secret: 'rc_sec_x9y8z7w6v5u4',
+        secret: process.env.ROBOTCHECK_SECRET,
         token: robotcheckToken
       })
     })
