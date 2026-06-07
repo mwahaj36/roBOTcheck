@@ -72,3 +72,5 @@ function renderTiles(container,onComplete){
     });
 container.appendChild(verifyBtn);
 }
+
+module.exports = { scoreQuizAnswer, renderTiles };
