@@ -1,8 +1,11 @@
 {
-  "name": "widget",
+  "name": "robotcheck",
   "version": "1.0.0",
-  "description": "",
+  "description": "Satirical reverse CAPTCHA — bans robots instead of verifying humans",
   "main": "dist/widget.js",
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build":"esbuild src/index.js --bundle --minify --outfile=dist/widget.js",
