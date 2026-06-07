@@ -15,9 +15,12 @@ COPY packages/server/src/ ./src/
 # Copy the built widget dist into the server container
 COPY --from=widget-builder /widget/dist/ ./dist/
 
+# Default port — overridden by PORT env var at runtime (e.g. HF Spaces sets PORT=7860)
+ENV PORT=3000
 EXPOSE 3000
 
-HEALTHCHECK --interval=30s --timeout=3s \
-  CMD wget -qO- http://localhost:3000/health || exit 1
+# Shell form so ${PORT} expands at container runtime
+HEALTHCHECK --interval=30s --timeout=5s \
+  CMD wget -qO- http://localhost:${PORT}/health || exit 1
 
 CMD ["node", "src/index.js"]
