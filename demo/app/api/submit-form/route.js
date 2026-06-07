@@ -22,6 +22,8 @@ export async function POST(request) {
     }
 
     // 3. Forward to verification backend
+    console.log('Attempting to fetch verify from:', process.env.ROBOTCHECK_API_URL);
+    
     const r = await fetch(`${process.env.ROBOTCHECK_API_URL}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -46,6 +48,7 @@ export async function POST(request) {
       })
     }
   } catch (err) {
+    console.error('VERIFY FETCH ERROR:', err);
     return NextResponse.json(
       { success: false, error: 'Could not connect to verification server: ' + err.message },
       { status: 500 }
