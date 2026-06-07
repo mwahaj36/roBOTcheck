@@ -1,7 +1,7 @@
 {
   "name": "robotcheck",
   "version": "1.0.0",
-  "description": "Satirical reverse CAPTCHA — bans robots instead of verifying humans",
+  "description": "Reverse CAPTCHA. bans robots instead of verifying humans",
   "main": "dist/widget.js",
   "files": [
     "dist/"
