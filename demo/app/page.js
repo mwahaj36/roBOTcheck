@@ -97,18 +97,17 @@ export default function Home() {
                 className="hero-logo"
               />
               <h1 className="brand-title">roBOTcheck_</h1>
-              <p className="brand-subtitle">An adversarial timing and kinetic telemetry suite designed to verify organic human presence.</p>
+              <p className="brand-subtitle">The reverse CAPTCHA that filters out efficient AI scripts by verifying you are a chaotic, slow biological human.</p>
             </div>
 
             <div className="telemetry-log">
-              <div className="log-line"><span className="log-label">[01]</span> MOUSE_TRAJECTORY_SAMPLING @ 60HZ</div>
-              <div className="log-line"><span className="log-label">[02]</span> KEYDOWN_INTERVAL_AUTOCORRELATION</div>
-              <div className="log-line"><span className="log-label">[03]</span> REFLEX_STIMULI_LATENCY_VERIFIER</div>
-              <div className="log-line"><span className="log-label">[04]</span> REJECT_MATHEMATICALLY_PERFECT_INPUTS</div>
+              <div className="log-line"><span className="log-label">[01]</span> DETECTING_LOUSY_MOUSE_OVERCORRECTIONS</div>
+              <div className="log-line"><span className="log-label">[02]</span> CHECKING_SLOPPY_TYPING_CADENCE</div>
+              <div className="log-line"><span className="log-label">[03]</span> ANALYZING_STIMULI_LATENCY_DELAY</div>
+              <div className="log-line"><span className="log-label">[04]</span> BANNING_PERFECTLY_EFFICIENT_BOTS</div>
             </div>
           </div>
 
-          {/* Right Column: Console Terminal Signup Form */}
           <div className="console-panel">
             <div className="console-bar">
               <span className="console-dot red"></span>
@@ -119,13 +118,13 @@ export default function Home() {
             
             <div className="console-body">
               <div className="console-header-text">
-                <p className="cli-prompt">$ ./init_subscription --admit-humans-only</p>
-                <p className="cli-response">roBOTcheck captcha initialised...</p>
+                <p className="cli-prompt">$ ./init_newsletter --no-robots-allowed</p>
+                <p className="cli-response">roBOTcheck captcha loaded...</p>
               </div>
 
               <form onSubmit={handleSubmit} className="console-form">
                 <div className="form-group">
-                  <label className="console-label">Subscriber Address</label>
+                  <label className="console-label">Human Email</label>
                   <div className="input-with-prompt">
                     <span className="input-prompt">&gt;</span>
                     <input 
@@ -170,9 +169,9 @@ export default function Home() {
       <section id="about" className="section-container about-section">
         <div className="section-header">
           <span className="section-tag">[ENG_MANIFESTO]</span>
-          <h2>The Reverse Verification Suite</h2>
+          <h2>Banning the Perfect. Celebrating the Messy.</h2>
           <p className="section-subheader">
-            Bots solve image-recognition puzzles in milliseconds. roBOTcheck shifts security parameters to measure organic cognitive friction, motor limits, and keystroke timing.
+            Bots are flawless. Humans are slow, clumsy, and full of friction. We monitor your kinetic drag errors and response lag times to verify that you are actually a biological entity.
           </p>
         </div>
         
@@ -180,20 +179,20 @@ export default function Home() {
           <div className="features-grid">
             <div className="feature-block">
               <div className="feature-code"># MODULE_01 // MOUSE_KINETICS</div>
-              <h3>Kinetic Velocity</h3>
-              <p>We sample pointer coordinates to measure approach vectors, deceleration anomalies, and micro-corrections.</p>
+              <h3>Sloppy Dragging</h3>
+              <p>We check your mouse path. If you navigate to the checkbox in a mathematically straight line, you are instantly banned.</p>
             </div>
 
             <div className="feature-block">
               <div className="feature-code"># MODULE_02 // TIMING_LATENCY</div>
-              <h3>Reflex Latency</h3>
-              <p>Monitors response velocity to randomized visual stimuli. Uniform or near-instant responses trigger lockouts.</p>
+              <h3>Slow Reactions</h3>
+              <p>Click the visual stimuli target. Response velocities under 150ms are flagged as superhuman script delays.</p>
             </div>
 
             <div className="feature-block">
               <div className="feature-code"># MODULE_03 // CADENCE_ANALYSIS</div>
-              <h3>Typing Cadence</h3>
-              <p>Measures standard deviation of keystroke delays. Automated scripts and clipboard pastes are instantly blocked.</p>
+              <h3>Natural Typing</h3>
+              <p>We look for keystroke friction and timing variations. Clipboard pasting or uniform interval typing triggers a ban.</p>
             </div>
           </div>
         </div>
@@ -208,23 +207,23 @@ export default function Home() {
         <div className="section-content legal-grid">
           {/* Terms Column */}
           <div className="legal-column">
-            <div className="legal-header-code">// LICENSE_TERMS_OF_USE</div>
-            <p className="legal-intro">By interacting with the suite, you authorize kinetic verification telemetry.</p>
+            <div className="legal-header-code">// BIO_HUMAN_LIABILITY_TERMS</div>
+            <p className="legal-intro">By testing this demo, you warrant that your hand-eye coordination is thoroughly average.</p>
             <ul className="legal-bullets">
-              <li>Reserved exclusively for biological human users with sloppy hand-eye response patterns.</li>
-              <li>Synthetic web agents, scrapers, headless browsers, and API macros are legally barred.</li>
-              <li>You accept timing delays and validation friction in exchange for identity confirmation.</li>
+              <li>Reserved exclusively for biological entities with imperfect motor responses.</li>
+              <li>AI agents, web scrapers, automated form-fillers, or headless scripts are legally barred.</li>
+              <li>You agree to waive your right to be efficient in exchange for passing our security checks.</li>
             </ul>
           </div>
 
           {/* Privacy Column */}
           <div className="legal-column">
-            <div className="legal-header-code">// TELEMETRY_PRIVACY_MANIFEST</div>
-            <p className="legal-intro">Telemetry protocols are strictly focused on checking friction anomalies.</p>
+            <div className="legal-header-code">// WHAT_WE_STALK_MANIFEST</div>
+            <p className="legal-intro">We only stalk your physical friction logs. No personal data collection.</p>
             <ul className="legal-bullets">
-              <li>All kinetic telemetry maps are posted directly to the self-hosted verification server of the host developer.</li>
-              <li>We never log or capture user keystroke letters; only keydown timestamps are recorded.</li>
-              <li>No tracking cookies are written. Sessions expire in RAM memory immediately after form POST verification.</li>
+              <li>Data coordinates and click latencies are sent directly to the host developer's self-hosted server.</li>
+              <li>We only measure keystroke interval timings; we never log the characters you actually type.</li>
+              <li>Zero tracking cookies are used. Telemetry is deleted from RAM immediately after validation.</li>
             </ul>
           </div>
         </div>
