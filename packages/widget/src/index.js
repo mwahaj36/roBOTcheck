@@ -168,7 +168,9 @@ function initSandbox(){
                 const title = document.createElement('h1');
                 title.textContent = 'Access Denied.';
                 const desc = document.createElement('p');
-                if (round === 1) {
+                if (res.reason) {
+                    desc.textContent = res.reason;
+                } else if (round === 1) {
                     desc.textContent = 'Suspicious signals detected: Click patterns, speeds, or paths are not chaotic enough.';
                 } else if (round === 2) {
                     desc.textContent = 'Reaction data collected: Physically impossible reaction speeds or robotic variance.';

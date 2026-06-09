@@ -32,6 +32,12 @@ function submitRoute(req, res){
         const isSoftwareWebgl = typeof webglRenderer === 'string' && /SwiftShader|Mesa|software/i.test(webglRenderer);
 
         if (isWebdriver || isHeadlessUA || isSuspiciousChrome || isSoftwareWebgl) {
+            let reason = 'Suspicious environment telemetry detected.';
+            if (isWebdriver) reason = 'Automation signature detected (navigator.webdriver).';
+            else if (isHeadlessUA) reason = 'Headless browser environment detected.';
+            else if (isSuspiciousChrome) reason = 'Suspicious headless browser profile detected (0 plugins).';
+            else if (isSoftwareWebgl) reason = `Software WebGL rasterizer detected (${webglRenderer}).`;
+
             console.log(`[BOT DETECTION] Anti-spoofing check triggered:`, {
                 webdriver: isWebdriver,
                 headlessUA: isHeadlessUA,
@@ -39,7 +45,7 @@ function submitRoute(req, res){
                 softwareWebgl: isSoftwareWebgl,
                 webglRenderer
             });
-            return res.json({ verdict: 'robot' });
+            return res.json({ verdict: 'robot', reason });
         }
     }
 
