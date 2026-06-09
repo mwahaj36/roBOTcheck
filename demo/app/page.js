@@ -230,7 +230,7 @@ export default function Home() {
       </section>
 
       <Script 
-        src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"
+        src="https://unpkg.com/@mwahaj36/robotcheck@1.0.1/dist/widget.js"
         strategy="afterInteractive" 
       />
     </div>
