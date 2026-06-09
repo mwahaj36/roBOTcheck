@@ -21,6 +21,28 @@ function submitRoute(req, res){
         return res.status(400).json({ error: 'missing parameters' })
     }
 
+    // Anti-spoofing environment checks to instantly reject automated browsers
+    if (signals && signals.automationFlags) {
+        const { webdriver, pluginsLength, headlessUserAgent, chromeObjectMissing, webglRenderer } = signals.automationFlags;
+        const ua = req.headers['user-agent'] || '';
+
+        const isWebdriver = webdriver === true;
+        const isHeadlessUA = headlessUserAgent === true || /HeadlessChrome|headless/i.test(ua);
+        const isSuspiciousChrome = pluginsLength === 0 && chromeObjectMissing && /Chrome/i.test(ua);
+        const isSoftwareWebgl = typeof webglRenderer === 'string' && /SwiftShader|Mesa|software/i.test(webglRenderer);
+
+        if (isWebdriver || isHeadlessUA || isSuspiciousChrome || isSoftwareWebgl) {
+            console.log(`[BOT DETECTION] Anti-spoofing check triggered:`, {
+                webdriver: isWebdriver,
+                headlessUA: isHeadlessUA,
+                suspiciousChrome: isSuspiciousChrome,
+                softwareWebgl: isSoftwareWebgl,
+                webglRenderer
+            });
+            return res.json({ verdict: 'robot' });
+        }
+    }
+
     let decoded = verifyToken(token)
     if(decoded == null){
         return res.status(400).json({ error: 'invalid challenge token' })

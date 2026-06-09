@@ -1,4 +1,9 @@
 const { chromium } = require('playwright');
+const fs = require('fs');
+const path = require('path');
+
+const ARTIFACT_DIR = 'C:/Users/Wahaj/.gemini/antigravity-ide/brain/5857007d-2753-4820-841f-75b799950c74';
+const TEMP_VIDEO_DIR = path.join(ARTIFACT_DIR, 'temp_videos');
 
 // List of known human behaviors from tiles.js
 const humanBehaviors = [
@@ -16,11 +21,30 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function ensureDirectoryExists(dir) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+}
+
+function cleanTempVideo(targetFilename) {
+    if (fs.existsSync(TEMP_VIDEO_DIR)) {
+        const files = fs.readdirSync(TEMP_VIDEO_DIR);
+        const videoFile = files.find(f => f.endsWith('.webm'));
+        if (videoFile) {
+            fs.renameSync(
+                path.join(TEMP_VIDEO_DIR, videoFile),
+                path.join(ARTIFACT_DIR, targetFilename)
+            );
+        }
+        // Remove temp dir
+        fs.rmSync(TEMP_VIDEO_DIR, { recursive: true, force: true });
+    }
+}
+
 // Generate human-like Bezier curve points
 function generateBezierPoints(start, end, steps = 25) {
     const points = [];
-    
-    // Create random control points to add a natural curve/deviations
     const deviationX = (Math.random() - 0.5) * 80;
     const deviationY = (Math.random() - 0.5) * 80;
     
@@ -37,11 +61,9 @@ function generateBezierPoints(start, end, steps = 25) {
     for (let i = 0; i <= steps; i++) {
         const t = i / steps;
         const mt = 1 - t;
-        // Cubic Bezier calculation
         const x = mt * mt * mt * start.x + 3 * mt * mt * t * control1.x + 3 * mt * t * t * control2.x + t * t * t * end.x;
         const y = mt * mt * mt * start.y + 3 * mt * mt * t * control1.y + 3 * mt * t * t * control2.y + t * t * t * end.y;
         
-        // Add tiny sub-pixel tremors/noise
         const noiseX = (Math.random() - 0.5) * 1.5;
         const noiseY = (Math.random() - 0.5) * 1.5;
         
@@ -59,9 +81,8 @@ async function humanMouseMove(page, start, end, fastMode = false) {
 
     for (const point of points) {
         const progress = points.indexOf(point) / points.length;
-        let delay = fastMode ? 2 : 6; // base delay in ms
+        let delay = fastMode ? 2 : 6;
         
-        // Decelerate near the end (last 25%) only if NOT in fastMode
         if (!fastMode && progress > 0.75) {
             delay += (progress - 0.75) * 40; 
         }
@@ -72,7 +93,6 @@ async function humanMouseMove(page, start, end, fastMode = false) {
         currentY = point.y;
     }
     
-    // Tiny overshoot and adjustment at the end (skip in fastMode)
     if (!fastMode && Math.random() > 0.4) {
         const overshootX = end.x + (Math.random() - 0.5) * 6;
         const overshootY = end.y + (Math.random() - 0.5) * 6;
@@ -85,52 +105,63 @@ async function humanMouseMove(page, start, end, fastMode = false) {
 
 async function runDumbBot() {
     console.log('\n--- 🤖 RUNNING DUMB BOT TEST ---');
-    const browser = await chromium.launch({ headless: false });
-    const page = await browser.newPage();
+    ensureDirectoryExists(TEMP_VIDEO_DIR);
+    
+    const browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+        recordVideo: {
+            dir: TEMP_VIDEO_DIR,
+            size: { width: 1024, height: 768 }
+        }
+    });
+    const page = await context.newPage();
     await page.goto('http://localhost:4000');
     
-    // Type email instantly
     await page.fill('input[type="email"]', 'dumb-bot@example.com');
     
-    // Locate the iframe
     const iframe = page.frameLocator('iframe');
-    await sleep(1000); // Wait for challenge to render
+    await sleep(1000);
 
-    // Find tiles inside the iframe
     const tileElements = iframe.locator('.tile');
     const count = await tileElements.count();
     
-    // Select all human tiles instantly with no mouse movement or delays
     for (let i = 0; i < count; i++) {
         const text = await tileElements.nth(i).textContent();
         if (humanBehaviors.includes(text.trim())) {
-            // Click instantly at the element center
             await tileElements.nth(i).click({ force: true });
         }
     }
     
-    // Click Verify instantly
     await iframe.locator('.verify-btn').click({ force: true });
     await sleep(1000);
     
-    // Click Submit
     await page.click('.console-submit');
     await sleep(2000);
     
-    // Check results
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    await context.close();
     await browser.close();
+    
+    await sleep(1000);
+    cleanTempVideo('dumb_bot_record.webm');
 }
 
 async function runSmartBot() {
     console.log('\n--- 🤖 RUNNING SMART BOT TEST ---');
-    const browser = await chromium.launch({ headless: false });
-    const page = await browser.newPage();
+    ensureDirectoryExists(TEMP_VIDEO_DIR);
+    
+    const browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+        recordVideo: {
+            dir: TEMP_VIDEO_DIR,
+            size: { width: 1024, height: 768 }
+        }
+    });
+    const page = await context.newPage();
     await page.goto('http://localhost:4000');
     
-    // Type email with slight delay
     await page.type('input[type="email"]', 'smart-bot@example.com', { delay: 30 });
     
     const iframe = page.frameLocator('iframe');
@@ -142,16 +173,14 @@ async function runSmartBot() {
     let currentPos = { x: 100, y: 100 };
     await page.mouse.move(currentPos.x, currentPos.y);
 
-    // Identify and click tiles with linear mouse movement and uniform delays
     for (let i = 0; i < count; i++) {
         const text = await tileElements.nth(i).textContent();
         if (humanBehaviors.includes(text.trim())) {
             const box = await tileElements.nth(i).boundingBox();
             if (box) {
                 const targetPos = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-                // Perfectly linear path in exactly 5 steps
                 await page.mouse.move(targetPos.x, targetPos.y, { steps: 5 });
-                await sleep(200); // Fixed robotic interval
+                await sleep(200);
                 await page.mouse.down();
                 await page.mouse.up();
                 await sleep(200);
@@ -160,7 +189,6 @@ async function runSmartBot() {
         }
     }
     
-    // Click Verify
     const verifyBox = await iframe.locator('.verify-btn').boundingBox();
     if (verifyBox) {
         await page.mouse.move(verifyBox.x + verifyBox.width / 2, verifyBox.y + verifyBox.height / 2, { steps: 5 });
@@ -170,40 +198,48 @@ async function runSmartBot() {
     
     await sleep(1000);
     
-    // Click Submit
     await page.click('.console-submit');
     await sleep(2000);
     
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    await context.close();
     await browser.close();
+    
+    await sleep(1000);
+    cleanTempVideo('smart_bot_record.webm');
 }
 
 async function runSuperSmartBot() {
     console.log('\n--- 🧑‍💻 RUNNING SUPER SMART BOT TEST ---');
-    const browser = await chromium.launch({ headless: false });
-    const page = await browser.newPage();
+    ensureDirectoryExists(TEMP_VIDEO_DIR);
+    
+    const browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+        recordVideo: {
+            dir: TEMP_VIDEO_DIR,
+            size: { width: 1024, height: 768 }
+        }
+    });
+    const page = await context.newPage();
     await page.goto('http://localhost:4000');
     
-    // Human-like typing delay (random per keystroke)
     const email = 'supersmart-bot@example.com';
     for (const char of email) {
         await page.type('input[type="email"]', char);
-        await sleep(70 + Math.random() * 120); // 70ms - 190ms delay
+        await sleep(70 + Math.random() * 120);
     }
-    await sleep(500 + Math.random() * 500); // Wait before starting challenge
+    await sleep(500 + Math.random() * 500);
 
     const iframe = page.frameLocator('iframe');
     
     let currentPos = { x: 50 + Math.random() * 100, y: 50 + Math.random() * 100 };
     await page.mouse.move(currentPos.x, currentPos.y);
     
-    // Round 1: Satirical Quiz
     const tileElements = iframe.locator('.tile');
     const count = await tileElements.count();
     
-    // Identify target human behaviors
     const targetIndices = [];
     for (let i = 0; i < count; i++) {
         const text = await tileElements.nth(i).textContent();
@@ -212,31 +248,22 @@ async function runSuperSmartBot() {
         }
     }
     
-    // Shuffle target order to simulate natural visual scanning
     targetIndices.sort(() => Math.random() - 0.5);
 
     for (const index of targetIndices) {
         const box = await tileElements.nth(index).boundingBox();
         if (box) {
             const targetPos = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-            
-            // Move mouse slightly faster to hit the "uncertain" range (41-69)
             await humanMouseMove(page, currentPos, targetPos, true);
-            
-            // Small pause before clicking
             await sleep(30 + Math.random() * 40);
             await page.mouse.down();
             await sleep(20 + Math.random() * 20);
             await page.mouse.up();
-            
             currentPos = targetPos;
-            
-            // Short delay after clicking before moving to next target
             await sleep(100 + Math.random() * 100);
         }
     }
     
-    // Move to and click Verify button in fastMode
     const verifyBox = await iframe.locator('.verify-btn').boundingBox();
     if (verifyBox) {
         const targetPos = { x: verifyBox.x + verifyBox.width / 2, y: verifyBox.y + verifyBox.height / 2 };
@@ -248,41 +275,37 @@ async function runSuperSmartBot() {
         currentPos = targetPos;
     }
     
-    await sleep(2000); // Wait for response from server
+    await sleep(2000);
 
-    // Handle next rounds if they are requested (e.g. if the verdict is uncertain)
-    // Round 2: Reaction round
     const reactionBox = iframe.locator('.reaction-box');
     if (await reactionBox.count() > 0) {
         console.log('Detected Round 2 (Reaction Flash)... solving humanly.');
-        // Reaction loop (3 sub-rounds)
         for (let i = 0; i < 3; i++) {
-            // Wait for target to turn red
             await iframe.locator('.reaction-box.red').waitFor({ state: 'visible', timeout: 10000 });
             const box = await reactionBox.boundingBox();
             if (box) {
                 const targetPos = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-                // Move mouse humanly to the box
                 await humanMouseMove(page, currentPos, targetPos);
-                // Simulate human reaction time delay (250ms - 400ms)
                 await sleep(250 + Math.random() * 150);
                 await page.mouse.click(targetPos.x, targetPos.y);
                 currentPos = targetPos;
             }
-            // Wait brief moment before next sub-round loads
             await sleep(1000);
         }
         await sleep(2000);
     }
 
-    // Submit the form
     await page.click('.console-submit');
     await sleep(2500);
     
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    await context.close();
     await browser.close();
+    
+    await sleep(1000);
+    cleanTempVideo('supersmart_bot_record.webm');
 }
 
 async function runAll() {

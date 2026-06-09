@@ -1,5 +1,33 @@
 const pageLoadTime=performance.now()//get loadtime for calc
 
+const getAutomationFlags = () => {
+    if (typeof window === 'undefined') return {};
+    
+    // WebGL Renderer check (software rasterizers like SwiftShader are flags of headless browsers)
+    let webglRenderer = 'unknown';
+    try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (gl) {
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            webglRenderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_ID) : 'unknown';
+        } else {
+            webglRenderer = 'no-webgl';
+        }
+    } catch (e) {
+        webglRenderer = 'error';
+    }
+
+    return {
+        webdriver: navigator.webdriver || false,
+        pluginsLength: navigator.plugins ? navigator.plugins.length : 0,
+        languages: navigator.languages ? navigator.languages.length : 0,
+        headlessUserAgent: /HeadlessChrome|headless/i.test(navigator.userAgent),
+        chromeObjectMissing: !window.chrome,
+        webglRenderer: webglRenderer
+    };
+};
+
 //Definition of all signals
 const signals={
  mousePath:[],
@@ -12,7 +40,8 @@ const signals={
  totalTime:null,
 pageHidden:false,
 devicePixelRatio:window.devicePixelRatio,
-touchEvents:0
+touchEvents:0,
+ automationFlags: getAutomationFlags()
 }
 
 let lastSample=0;//when was last sample taken for mouse move
