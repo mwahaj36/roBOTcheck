@@ -5,10 +5,10 @@ export async function POST(request) {
     const body = await request.json()
     const { email, robotcheckToken, confirmEmail } = body
 
-    // 1. Honeypot check: reject if bait field is filled
+    // 1. Secondary email check: reject if bait field is filled
     if (confirmEmail && confirmEmail.trim() !== '') {
       return NextResponse.json(
-        { success: false, error: 'Bot detected via Honeypot field!' },
+        { success: false, error: 'Bot detected via secondary field!' },
         { status: 400 }
       )
     }

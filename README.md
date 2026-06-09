@@ -20,6 +20,33 @@ roBOTcheck runs as two components you deploy yourself:
 
 ---
 
+## The Challenges & Scoring Mechanics
+
+roBOTcheck doesn't care *if* you complete a challenge; it cares *how* you complete it. Bots are incredibly fast and perfectly precise. Humans are slow, jittery, and inconsistent. The Verification Server uses this biological imperfection to generate a **Robot Score (0-100)**. Lower is more human.
+
+### 1. The Tiles Challenge
+**The Task:** Click a sequence of highlighted tiles.
+**How we catch bots:** 
+- **Trajectory Analysis:** We track the cursor path. Bots draw perfect straight lines between targets. Humans draw subtle arcs with micro-corrections.
+- **Click Variance:** Bots click the exact center of a target. Humans click randomly around the edges.
+- **Speed:** Instantaneous snapping between tiles adds massive penalty points.
+
+### 2. The Reaction Challenge
+**The Task:** Wait for a red box to turn green, then click it.
+**How we catch bots:** 
+- **Reaction Time:** Average human reaction time is ~200-250ms. If a click registers in <50ms, it is physically impossible and immediately flagged as a script.
+- **Anticipation:** If the click lands *exactly* on a perfectly round number (like exactly 100ms) repeatedly, it indicates a hardcoded `sleep()` timer.
+
+### 3. The Typing Challenge
+**The Task:** Type a specific short phrase into a box.
+**How we catch bots:** 
+- **Paste Detection:** If the phrase appears instantly, it's a bot.
+- **Keystroke Cadence:** We measure *Dwell Time* (how long a key is held down) and *Flight Time* (the gap between keys). A bot script usually types with a perfectly uniform 20ms gap between every character. Human typing has rhythmic variance (slower on difficult keys, faster on common combinations).
+
+If your final telemetry looks "too perfect", the server rejects you. If you look like a messy, jittery human, you get a signed token!
+
+---
+
 ## Step 1 — Set Up Your Keys
 
 Create a `.env` file in the root of the project (you can copy the provided `.env.example`). This file is **strictly required** for the server to start. You will need to define three keys:
@@ -85,6 +112,26 @@ When integrating roBOTcheck, your setup will look slightly different depending o
 - You will deploy the Verification Server Docker container to a live cloud host (like Hugging Face Spaces, Render, or a DigitalOcean VPS).
 - In your frontend HTML, you must update the config to point to your live URL: `window.ROBOTCHECK_CONFIG.apiUrl = "https://your-deployed-server.com"`.
 - Your backend will verify tokens by making `fetch` requests to `https://your-deployed-server.com/verify`.
+
+### Deploying the Docker Container to Production
+
+Running `docker run` on your personal computer is great for testing, but for a live application, the Verification Server must run 24/7 on the internet. Here is exactly how to deploy the container to various cloud hosts:
+
+**Approach 1: Hugging Face Spaces (Easiest & Free)**
+Hugging Face allows you to host Docker containers for free.
+1. Create an account on Hugging Face and create a new **Space**.
+2. Select **Docker** as your Space SDK.
+3. In your Space's **Settings**, find the **Variables and secrets** section and add: `SECRET`, `SECRETKEY`, `SITEKEY`, and `NODE_ENV=production`.
+4. Set your space to pull the `mwahaj36/robotcheck:latest` image.
+5. Hugging Face will automatically boot the server and provide you with a live HTTPS URL. Use this URL in your frontend and backend configs!
+
+**Approach 2: Container Hosts (Render, Railway, Fly.io)**
+These platforms are designed specifically for hosting Docker images with zero server maintenance.
+1. Sign up for a service like Render or Railway.
+2. Click **Create New Web Service** and choose **Deploy an existing image**.
+3. Enter `mwahaj36/robotcheck:latest` as the image URL.
+4. In the setup wizard, add your 4 Environment Variables (`SECRET`, `SECRETKEY`, `SITEKEY`, `NODE_ENV`).
+5. Click **Deploy**. The platform will handle port mapping and instantly give you a secure `https://` URL.
 
 ---
 
@@ -235,23 +282,37 @@ Choose your backend language:
 
 ---
 
-### Node.js (Express)
+### Node.js (Express & Next.js)
+
+**Pro-Tip for easier integration:** Create a reusable helper function in your project so you don't have to rewrite the `fetch` logic in every route!
 
 ```js
+// lib/robotcheck.js
+export async function verifyRobotcheck(token) {
+  if (!token) return { success: false, error: 'No token provided' };
+  try {
+    const res = await fetch("http://localhost:3000/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret: "rc_sec_yourkey", token })
+    });
+    return await res.json();
+  } catch (err) {
+    return { success: false, error: 'Connection failed' };
+  }
+}
+```
+
+Then simply use it in your route:
+
+```js
+import { verifyRobotcheck } from './lib/robotcheck';
+
 app.post("/signup", async (req, res) => {
   const { email, robotcheckToken } = req.body;
 
-  // Step 1: Send the token to your roBOTcheck server for verification
-  const verifyResponse = await fetch("http://localhost:3000/verify", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      secret: "rc_sec_yourkey", // Your SECRETKEY from Step 1
-      token: robotcheckToken, // The token from the submitted form
-    }),
-  });
-
-  const result = await verifyResponse.json();
+  // Step 1: Verify the token
+  const result = await verifyRobotcheck(robotcheckToken);
 
   // Step 2: Check the result
   if (!result.success) {

@@ -48,7 +48,7 @@ function initHost(){
         }
         if(e.data.type==='robotcheck:pass'){
             if(hp && hp.value !== ''){
-                console.warn("Honeypot field filled. Pass token blocked.")
+                console.warn("Secondary trap filled. Pass token blocked.")
                 return
             }
             currentVerificationToken=e.data.token;
