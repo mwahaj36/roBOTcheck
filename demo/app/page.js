@@ -97,7 +97,7 @@ export default function Home() {
                 className="hero-logo"
               />
               <h1 className="brand-title">roBOTcheck_</h1>
-              <p className="brand-subtitle">The reverse CAPTCHA that filters out efficient AI scripts by verifying you are a chaotic, slow biological human.</p>
+              <p className="brand-subtitle">The reverse CAPTCHA that filters out bots by verifying you are a chaotic, slow biological human.</p>
             </div>
 
             <div className="telemetry-log">

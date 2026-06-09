@@ -12,11 +12,12 @@ module.exports = async (req, res) => {
         // Forward verification check to verification server.
         // In local development: http://localhost:3000/verify
         // In production: Configure to point to your live verification server.
-        const r = await fetch('http://localhost:3000/verify', {
+        const apiBaseUrl = process.env.ROBOTCHECK_API_URL || 'http://localhost:3000'
+        const r = await fetch(`${apiBaseUrl}/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                secret: 'rc_sec_x9y8z7w6v5u4',
+                secret: process.env.ROBOTCHECK_SECRET || 'rc_sec_x9y8z7w6v5u4',
                 token: robotcheckToken
             })
         })
