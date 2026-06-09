@@ -104,7 +104,7 @@ function initSandbox(){
     let link = document.createElement('a')
     link.href = 'https://ro-bot-check.vercel.app/'
     link.target = '_blank'
-    link.innerText = 'protected by roBOTcheck'
+    link.innerText = 'protected by roBOTcheck V1.1.0'
     link.style.color = '#8b949e'
     link.style.textDecoration = 'none'
     

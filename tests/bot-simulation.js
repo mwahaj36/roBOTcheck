@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 const ARTIFACT_DIR = 'C:/Users/Wahaj/.gemini/antigravity-ide/brain/5857007d-2753-4820-841f-75b799950c74';
-const TEMP_VIDEO_DIR = path.join(ARTIFACT_DIR, 'temp_videos');
 
 // List of known human behaviors from tiles.js
 const humanBehaviors = [
@@ -19,27 +18,6 @@ const humanBehaviors = [
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function ensureDirectoryExists(dir) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-}
-
-function cleanTempVideo(targetFilename) {
-    if (fs.existsSync(TEMP_VIDEO_DIR)) {
-        const files = fs.readdirSync(TEMP_VIDEO_DIR);
-        const videoFile = files.find(f => f.endsWith('.webm'));
-        if (videoFile) {
-            fs.renameSync(
-                path.join(TEMP_VIDEO_DIR, videoFile),
-                path.join(ARTIFACT_DIR, targetFilename)
-            );
-        }
-        // Remove temp dir
-        fs.rmSync(TEMP_VIDEO_DIR, { recursive: true, force: true });
-    }
 }
 
 // Generate human-like Bezier curve points
@@ -105,12 +83,10 @@ async function humanMouseMove(page, start, end, fastMode = false) {
 
 async function runDumbBot() {
     console.log('\n--- 🤖 RUNNING DUMB BOT TEST ---');
-    ensureDirectoryExists(TEMP_VIDEO_DIR);
-    
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         recordVideo: {
-            dir: TEMP_VIDEO_DIR,
+            dir: ARTIFACT_DIR,
             size: { width: 1024, height: 768 }
         }
     });
@@ -141,21 +117,22 @@ async function runDumbBot() {
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    // Save video cleanly
+    const video = page.video();
     await context.close();
+    if (video) {
+        await video.saveAs(path.join(ARTIFACT_DIR, 'dumb_bot_record.webm'));
+        await video.delete();
+    }
     await browser.close();
-    
-    await sleep(1000);
-    cleanTempVideo('dumb_bot_record.webm');
 }
 
 async function runSmartBot() {
     console.log('\n--- 🤖 RUNNING SMART BOT TEST ---');
-    ensureDirectoryExists(TEMP_VIDEO_DIR);
-    
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         recordVideo: {
-            dir: TEMP_VIDEO_DIR,
+            dir: ARTIFACT_DIR,
             size: { width: 1024, height: 768 }
         }
     });
@@ -204,26 +181,37 @@ async function runSmartBot() {
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    const video = page.video();
     await context.close();
+    if (video) {
+        await video.saveAs(path.join(ARTIFACT_DIR, 'smart_bot_record.webm'));
+        await video.delete();
+    }
     await browser.close();
-    
-    await sleep(1000);
-    cleanTempVideo('smart_bot_record.webm');
 }
 
 async function runSuperSmartBot() {
     console.log('\n--- 🧑‍💻 RUNNING SUPER SMART BOT TEST ---');
-    ensureDirectoryExists(TEMP_VIDEO_DIR);
-    
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({
+        headless: true,
+        args: ['--force-device-scale-factor=2']
+    });
     const context = await browser.newContext({
+        viewport: { width: 1024, height: 768 },
+        deviceScaleFactor: 2,
         recordVideo: {
-            dir: TEMP_VIDEO_DIR,
-            size: { width: 1024, height: 768 }
+            dir: ARTIFACT_DIR,
+            size: { width: 2048, height: 1536 }
         }
     });
     const page = await context.newPage();
     await page.goto('http://localhost:4000');
+    
+    // Log the console-panel bounding box to help crop command
+    const consolePanel = page.locator('.console-panel');
+    await consolePanel.waitFor({ state: 'visible' });
+    const box = await consolePanel.boundingBox();
+    console.log('Console Panel Bounding Box:', box);
     
     const email = 'supersmart-bot@example.com';
     for (const char of email) {
@@ -256,9 +244,7 @@ async function runSuperSmartBot() {
             const targetPos = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
             await humanMouseMove(page, currentPos, targetPos, true);
             await sleep(30 + Math.random() * 40);
-            await page.mouse.down();
-            await sleep(20 + Math.random() * 20);
-            await page.mouse.up();
+            await page.mouse.click(targetPos.x, targetPos.y, { delay: 30 });
             currentPos = targetPos;
             await sleep(100 + Math.random() * 100);
         }
@@ -269,9 +255,7 @@ async function runSuperSmartBot() {
         const targetPos = { x: verifyBox.x + verifyBox.width / 2, y: verifyBox.y + verifyBox.height / 2 };
         await humanMouseMove(page, currentPos, targetPos, true);
         await sleep(50 + Math.random() * 50);
-        await page.mouse.down();
-        await sleep(20 + Math.random() * 20);
-        await page.mouse.up();
+        await page.mouse.click(targetPos.x, targetPos.y, { delay: 50 });
         currentPos = targetPos;
     }
     
@@ -301,11 +285,13 @@ async function runSuperSmartBot() {
     const statusText = await page.locator('.console-status').textContent().catch(() => 'No status box found');
     console.log('Result Status:\n', statusText.trim());
     
+    const video = page.video();
     await context.close();
+    if (video) {
+        await video.saveAs(path.join(ARTIFACT_DIR, 'supersmart_bot_record.webm'));
+        await video.delete();
+    }
     await browser.close();
-    
-    await sleep(1000);
-    cleanTempVideo('supersmart_bot_record.webm');
 }
 
 async function runAll() {

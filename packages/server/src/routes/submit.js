@@ -21,6 +21,8 @@ function submitRoute(req, res){
         return res.status(400).json({ error: 'missing parameters' })
     }
 
+    console.log('[SERVER SUBMIT] Received signals.automationFlags:', signals?.automationFlags);
+
     // Anti-spoofing environment checks to instantly reject automated browsers
     if (signals && signals.automationFlags) {
         const { webdriver, pluginsLength, headlessUserAgent, chromeObjectMissing, webglRenderer } = signals.automationFlags;
