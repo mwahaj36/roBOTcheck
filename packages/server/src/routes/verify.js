@@ -2,7 +2,7 @@ const { getSession, isTokenUsed, markTokenUsed } = require('../session')
 const { verifyToken } = require('../tokens')
 const { combinedScore } = require('../scoring/shared')
 
-const SECRETKEY = process.env.SECRETKEY || 'rc_sec_x9y8z7w6v5u4'
+const SECRETKEY = process.env.SECRETKEY
 
 function verifyRoute(req, res){
     let { secret, token } = req.body

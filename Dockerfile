@@ -1,4 +1,4 @@
-# Stage 1: Build the widget bundle
+#Build the widget bundle
 FROM node:20-alpine AS widget-builder
 WORKDIR /widget
 COPY packages/widget/package.json ./
@@ -6,7 +6,7 @@ RUN npm install
 COPY packages/widget/src/ ./src/
 RUN npm run build
 
-# Stage 2: Run the verification server
+#Run the verification server
 FROM node:20-alpine
 WORKDIR /app
 COPY packages/server/package.json ./

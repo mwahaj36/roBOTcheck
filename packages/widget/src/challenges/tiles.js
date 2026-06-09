@@ -22,15 +22,6 @@ const robotOpt = [
     "zero latency", "no loops", "compiles C", "math solver"
 ];
 
-function scoreQuizAnswer(selected,correctIndices){
-    let correct=selected.filter(f=>correctIndices.includes(f)).length;
-    let incorrect=selected.filter(i => !correctIndices.includes(i)).length;
-
-    if(correct===correctIndices.length && incorrect===0){
-        return 5;
-    }
-    return Math.max(0,incorrect*3-correct*2)
-}
 function renderTiles(container,onComplete){
 
     let human=humanOpt.sort(()=>Math.random()-0.5).slice(0,5)
@@ -99,4 +90,4 @@ function renderTiles(container,onComplete){
 container.appendChild(verifyBtn);
 }
 
-module.exports = { scoreQuizAnswer, renderTiles };
+module.exports = { renderTiles };

@@ -1,5 +1,24 @@
 const sessions = new Map()
-const usedTokens = new Set()
+const usedTokens = new Map()
+
+// Cleanup interval: runs every 5 minutes
+setInterval(() => {
+    const now = Date.now()
+    
+    // Cleanup old sessions (older than 10 minutes)
+    for (const [sessionId, session] of sessions.entries()) {
+        if (now - session.createdAt > 10 * 60 * 1000) {
+            sessions.delete(sessionId)
+        }
+    }
+    
+    // Cleanup expired tokens
+    for (const [tokenId, expiresAt] of usedTokens.entries()) {
+        if (now > expiresAt) {
+            usedTokens.delete(tokenId)
+        }
+    }
+}, 5 * 60 * 1000)
 
 function createSession(sessionId, sitekey){
     let session = {
@@ -7,7 +26,8 @@ function createSession(sessionId, sitekey){
         sitekey: sitekey,
         roundsCompleted: 0,
         attempts: [],
-        maxRounds: parseInt(process.env.MAX_ROUNDS) || 3
+        maxRounds: 3,
+        createdAt: Date.now()
     }
     sessions.set(sessionId, session)
     return session
@@ -34,7 +54,8 @@ function isTokenUsed(tokenId){
 }
 
 function markTokenUsed(tokenId){
-    usedTokens.add(tokenId)
+    // Token valid for 10 mins matching the result token expiration
+    usedTokens.set(tokenId, Date.now() + 10 * 60 * 1000)
 }
 
 module.exports = {

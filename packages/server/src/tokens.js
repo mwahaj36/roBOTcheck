@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const SECRET = process.env.SECRET || 'fallback-secret-for-dev'
+const SECRET = process.env.SECRET
 
 function generateChallengeToken(sessionId, sitekey){
     return jwt.sign(

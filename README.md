@@ -1,27 +1,56 @@
 # roBOTcheck
 
+**⚠️ IMPORTANT DISCLAIMER: This is a SATIRICAL, conceptual project. It is perfect for small, low-traffic personal apps (like a personal blog or contact form). It is NOT intended for high-stakes or security-critical applications (like banking, massive enterprise apps, or anything handling sensitive data).**
+
 roBOTcheck is a satirical reverse CAPTCHA that lets humans through while blocking bots. Instead of asking you to click traffic lights, it watches how you move, click, and type. Bots that are too fast, too precise, or too consistent get blocked. Humans, with all their glorious imperfection, pass.
 
 ---
 
 ## How It Works
 
-roBOTcheck runs as two components:
+When you add roBOTcheck to a page, two things happen:
 
-- **Verification Server** — a self-hosted Docker container that runs challenges, scores behavior, and issues signed tokens.
-- **Widget** — a JavaScript snippet you drop into your page that loads the challenge iframe and returns a token on pass.
+1. A small **widget** loads on your page. It creates an invisible iframe that runs a series of behavioral challenges — tile selection, reaction timing, and typing cadence.
+2. When the user completes the challenges, the **verification server** scores their behavior and issues a signed token. Your backend checks that token before accepting any form submission.
+
+roBOTcheck runs as two components you deploy yourself:
+
+- **Verification Server** — a Docker container you host. It manages sessions, scores telemetry, and signs tokens. Nobody else hosts this for you, which means you control your own data.
+- **Widget** — a JavaScript file your users load in the browser. It handles the challenge UI and talks to your server.
 
 ---
 
-## Quick Start for Users
+## Step 1 — Set Up Your Keys
 
-### Step 1 — Run the verification server
+Create a `.env` file in the root of the project (you can copy the provided `.env.example`). This file is **strictly required** for the server to start. You will need to define three keys:
 
-Pull and run the Docker image:
+- **SECRET** — a long random string used internally to sign session tokens. Think of it like a password for the server itself. Example: `k7Xp2mNq9zLw4vRt`
+- **SECRETKEY** — your private API key. Your backend uses this when calling `/verify`. Never put this in frontend code. Example: `rc_sec_myapp_k7x2`
+- **SITEKEY** — your public key. This goes in your HTML on the widget element. It is safe to be visible to users. Example: `rc_pub_myapp_k7x2`
+
+You can name these whatever you want — there is no central registry. They just have to match between your server config, your frontend HTML, and your backend code.
+
+---
+
+## Step 2 — Run the Verification Server
+
+The server is distributed as a Docker image. This means you do not install Node.js or any dependencies manually — Docker handles everything inside a container.
+
+### Install Docker
+
+If you do not have Docker, download Docker Desktop from [docker.com](https://docker.com) and install it. Make sure it is running before continuing.
+
+### Pull the image
 
 ```bash
 docker pull mwahaj36/robotcheck:latest
+```
 
+This downloads the pre-built server image from Docker Hub to your machine. You only need to do this once (or again when you want to update to a newer version).
+
+### Run the container
+
+```bash
 docker run -d -p 3000:3000 \
   -e SECRET=your_random_secret \
   -e SECRETKEY=rc_sec_yourkey \
@@ -30,108 +59,306 @@ docker run -d -p 3000:3000 \
   mwahaj36/robotcheck:latest
 ```
 
-Your server is now live at `http://localhost:3000` (or your deployed URL).
+What each part does:
 
-**Environment variables:**
+| Part                         | What it does                                                                                                           |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `docker run`                 | Starts a new container from the image                                                                                  |
+| `-d`                         | Runs it in the background so your terminal is not blocked                                                              |
+| `-p 3000:3000`               | Maps port 3000 on your machine to port 3000 inside the container. You will reach the server at `http://localhost:3000` |
+| `-e SECRET=...`              | Sets the internal token signing secret. Replace with your own random string                                            |
+| `-e SECRETKEY=...`           | Sets your private API key. Replace with your own value                                                                 |
+| `-e SITEKEY=...`             | Sets your public site key. Replace with your own value                                                                 |
+| `-e NODE_ENV=production`     | Tells the server it is in production mode, which enforces that all required variables are present                      |
+| `mwahaj36/robotcheck:latest` | The image to run — pulls from Docker Hub                                                                               |
 
-| Variable | Description |
-|----------|-------------|
-| `SECRET` | Random string used to sign session tokens |
-| `SECRETKEY` | Your private secret key (shared with your backend only) |
-| `SITEKEY` | Your public site key (used on the client) |
-| `PORT` | Port to listen on (default: `3000`) |
-| `NODE_ENV` | Set to `production` to enforce all required variables |
+### Verify it is running
+
+Open your browser and go to:
+
+```
+http://localhost:3000/health
+```
+
+You should see `OK`. That means the server is up and accepting connections.
 
 ---
 
-### Step 2 — Add the widget to your page
+## Step 3 — Add the Widget to Your Page
 
-Install the client script via npm:
+The widget is a JavaScript file that mounts the challenge UI inside your page. It detects the `.robotcheck` element, creates a sandboxed iframe pointing to your server, and runs the challenges there.
+
+Choose the method that suits your project:
+
+---
+
+### Option A — CDN (recommended for plain HTML projects)
+
+No installation needed. Just add script tags to your HTML.
+
+```html
+<!DOCTYPE html>
+<html>
+  <body>
+    <form id="signup-form">
+      <input type="email" name="email" placeholder="your@email.com" required />
+
+      <!--
+        This is where the widget mounts.
+        data-sitekey must match the SITEKEY you set on your server.
+    -->
+      <div class="robotcheck" data-sitekey="rc_pub_yourkey"></div>
+
+      <!--
+        This hidden input will hold the pass token once the user
+        completes the challenge. Your form submits it to your backend.
+    -->
+      <input type="hidden" name="robotcheckToken" id="rc-token" />
+
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <!--
+    Tell the widget where your verification server lives.
+    This must come BEFORE the widget script tag.
+-->
+    <script>
+      window.ROBOTCHECK_CONFIG = {
+        apiUrl: "http://localhost:3000",
+        // In production, replace with your deployed server URL:
+        // apiUrl: 'https://your-server.example.com'
+      };
+    </script>
+
+    <!-- Load the widget from the CDN -->
+    <script src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"></script>
+
+    <!--
+    When the user passes the challenge, store the token in the hidden input.
+    The form will include it when submitted.
+-->
+    <script>
+      robotcheck.onPass(function (token) {
+        document.getElementById("rc-token").value = token;
+      });
+    </script>
+  </body>
+</html>
+```
+
+---
+
+### Option B — npm (for Node.js / bundler projects)
+
+If you are using a framework like Express, Next.js, or a bundler like Webpack:
+
+**Install the package:**
 
 ```bash
 npm install @mwahaj36/robotcheck
 ```
 
-Or load it directly from a CDN:
+**Serve the widget file as a static asset from your Express server:**
 
-```html
-<script src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"></script>
+```js
+// In your Express app (e.g. server.js or app.js)
+const express = require("express");
+const path = require("path");
+const app = express();
+
+// This makes the widget script available at /robotcheck/widget.js
+// It serves directly from the installed npm package — no manual copying needed.
+app.use(
+  "/robotcheck",
+  express.static(
+    path.join(__dirname, "node_modules/@mwahaj36/robotcheck/dist"),
+  ),
+);
 ```
 
-Add a mounting element inside your form and configure the API URL:
+**Then reference it in your HTML:**
 
 ```html
-<form id="your-form">
-    <!-- roBOTcheck mounts here -->
-    <div class="robotcheck" data-sitekey="rc_pub_yourkey"></div>
+<form id="signup-form">
+  <input type="email" name="email" placeholder="your@email.com" required />
 
-    <button type="submit">Submit</button>
+  <div class="robotcheck" data-sitekey="rc_pub_yourkey"></div>
+  <input type="hidden" name="robotcheckToken" id="rc-token" />
+
+  <button type="submit">Sign Up</button>
 </form>
 
-<!-- Tell the widget where your server lives -->
 <script>
-    window.ROBOTCHECK_CONFIG = {
-        apiUrl: 'https://your-server.example.com'
-    }
+  window.ROBOTCHECK_CONFIG = {
+    apiUrl: "http://localhost:3000",
+  };
 </script>
-<script src="https://unpkg.com/@mwahaj36/robotcheck/dist/widget.js"></script>
+
+<!-- Now loads from your own server instead of an external CDN -->
+<script src="/robotcheck/widget.js"></script>
+
 <script>
-    // Store the pass token when the user completes verification
-    robotcheck.onPass((token) => {
-        document.getElementById('rc-token').value = token;
-    });
+  robotcheck.onPass(function (token) {
+    document.getElementById("rc-token").value = token;
+  });
 </script>
 ```
 
 ---
 
-### Step 3 — Verify the token on your backend
+## Step 4 — Verify the Token on Your Backend
 
-When your form is submitted, send the token from your backend to the verification server:
+When a user submits your form, their browser sends a `robotcheckToken` along with the rest of the form data. **Do not trust this token on its own.** Your backend must verify it with your server before accepting the submission.
 
-```js
-const response = await fetch('https://your-server.example.com/verify', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-        secret: 'rc_sec_yourkey',
-        token: req.body.robotcheckToken
-    })
-});
+This is a server-to-server call — it never happens in the browser. The user never sees your `SECRETKEY`.
 
-const result = await response.json();
+The verification endpoint is:
 
-if (!result.success) {
-    return res.status(403).json({ error: 'Bot detected.' });
-}
-
-// Proceed with form handling
+```
+POST https://your-server.example.com/verify
 ```
 
-**Response format:**
+It expects a JSON body:
 
 ```json
 {
-    "success": true,
-    "score": 14,
-    "roundsCompleted": 3
+  "secret": "rc_sec_yourkey",
+  "token": "the token from the form submission"
 }
 ```
 
-A lower score means more human. If `success` is `false`, reject the request.
+Choose your backend language:
+
+---
+
+### Node.js (Express)
+
+```js
+app.post("/signup", async (req, res) => {
+  const { email, robotcheckToken } = req.body;
+
+  // Step 1: Send the token to your roBOTcheck server for verification
+  const verifyResponse = await fetch("http://localhost:3000/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      secret: "rc_sec_yourkey", // Your SECRETKEY from Step 1
+      token: robotcheckToken, // The token from the submitted form
+    }),
+  });
+
+  const result = await verifyResponse.json();
+
+  // Step 2: Check the result
+  if (!result.success) {
+    // The token was invalid, expired, or the user was flagged as a bot
+    return res
+      .status(403)
+      .json({ error: "Bot detected. Submission rejected." });
+  }
+
+  // Step 3: Token is valid — safe to process the form
+  console.log(
+    `Human verified. Score: ${result.score}, Rounds: ${result.roundsCompleted}`,
+  );
+  res.json({ success: true, message: `Welcome, ${email}!` });
+});
+```
+
+---
+
+### Python (Flask + requests)
+
+```python
+import requests
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    token = data.get('robotcheckToken')
+    email = data.get('email')
+
+    # Step 1: Verify the token with your roBOTcheck server
+    result = requests.post('http://localhost:3000/verify', json={
+        'secret': 'rc_sec_yourkey',   # Your SECRETKEY from Step 1
+        'token': token                 # The token from the submitted form
+    }).json()
+
+    # Step 2: Check the result
+    if not result.get('success'):
+        return jsonify({'error': 'Bot detected. Submission rejected.'}), 403
+
+    # Step 3: Token is valid — safe to process the form
+    return jsonify({'success': True, 'message': f'Welcome, {email}!'})
+```
+
+---
+
+### PHP
+
+```php
+<?php
+$token = $_POST['robotcheckToken'];
+$email = $_POST['email'];
+
+// Step 1: Verify the token with your roBOTcheck server
+$response = file_get_contents('http://localhost:3000/verify', false,
+    stream_context_create(['http' => [
+        'method'  => 'POST',
+        'header'  => 'Content-Type: application/json',
+        'content' => json_encode([
+            'secret' => 'rc_sec_yourkey',  // Your SECRETKEY from Step 1
+            'token'  => $token              // The token from the submitted form
+        ])
+    ]])
+);
+
+$result = json_decode($response, true);
+
+// Step 2: Check the result
+if (!$result['success']) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Bot detected. Submission rejected.']);
+    exit;
+}
+
+// Step 3: Token is valid — safe to process the form
+echo json_encode(['success' => true, 'message' => "Welcome, $email!"]);
+```
+
+---
+
+### Verify response format
+
+```json
+{
+  "success": true,
+  "score": 14,
+  "roundsCompleted": 3
+}
+```
+
+| Field             | Description                                                                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `success`         | `true` if the token is valid and the user passed. `false` if the token is invalid, expired, already used, or the user was flagged as a bot |
+| `score`           | A robot score from 0–100. Lower is more human. Above ~60 is flagged as a bot                                                               |
+| `roundsCompleted` | How many challenge rounds the user completed (1–3)                                                                                         |
 
 ---
 
 ## SDK API Reference
 
-The widget exposes a global `robotcheck` object after the script loads:
+Once the widget script loads, `window.robotcheck` is available globally:
 
-| Method | Description |
-|--------|-------------|
-| `robotcheck.onPass(fn)` | Called with the signed token when the user passes |
-| `robotcheck.getToken()` | Returns the current token, or `null` if not yet passed |
-| `robotcheck.isReady()` | Returns `true` once the widget has initialized |
-| `robotcheck.reset()` | Resets the widget to start the challenge again |
+| Method                  | Description                                                                   |
+| ----------------------- | ----------------------------------------------------------------------------- |
+| `robotcheck.onPass(fn)` | Register a callback. Called with the signed token string when the user passes |
+| `robotcheck.getToken()` | Returns the current pass token, or `null` if not yet passed                   |
+| `robotcheck.isReady()`  | Returns `true` once the widget has fully initialized in the iframe            |
+| `robotcheck.reset()`    | Clears the current token and restarts the challenge from the beginning        |
 
 ---
 
@@ -139,13 +366,15 @@ The widget exposes a global `robotcheck` object after the script loads:
 
 This is a monorepo containing:
 
-- `packages/widget` — the client SDK and challenge UI (published to npm as `@mwahaj36/robotcheck`)
-- `packages/server` — the Express verification server (published to Docker Hub as `mwahaj36/robotcheck`)
+- `packages/widget` — the client SDK and challenge UI (published to npm as [`@mwahaj36/robotcheck`](https://www.npmjs.com/package/@mwahaj36/robotcheck))
+- `packages/server` — the Express verification server (published to Docker Hub as [`mwahaj36/robotcheck`](https://hub.docker.com/r/mwahaj36/robotcheck))
 - `demo` — a Next.js demo app showing a full integration
 
 ---
 
-## Running Locally (for contributors)
+## Running Locally
+
+First, ensure you have created your `.env` file in the root of the project (you can copy `.env.example`). The server will crash if it is missing the required variables.
 
 Install dependencies:
 
@@ -153,7 +382,7 @@ Install dependencies:
 npm install
 ```
 
-Start the verification server:
+Start the verification server (runs on http://localhost:3000):
 
 ```bash
 npm run dev --workspace=packages/server

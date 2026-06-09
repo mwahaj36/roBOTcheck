@@ -3,10 +3,6 @@ const{renderTiles} =require("./challenges/tiles")
 const{renderReaction} =require("./challenges/reaction")
 const{renderTextArea} =require("./challenges/textarea")
 
-
-
-
-
 function initHost(){
     let currentVerificationToken=null;
     let callbacks=[];
@@ -25,7 +21,8 @@ function initHost(){
     frame.src=`${API_URL}/widget?sitekey=${sitekey}&origin=${encodeURIComponent(window.location.origin)}`
     frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms')
     frame.style.border='none'
-    frame.style.width='380px'
+    frame.style.width='100%'
+    frame.style.maxWidth='380px'
     frame.style.height='280px'
     frame.style.overflow='hidden'
 
@@ -105,7 +102,7 @@ function initSandbox(){
     branding.style.fontSize = '10px'
     
     let link = document.createElement('a')
-    link.href = 'https://robotcheck.dev'
+    link.href = 'https://ro-bot-check.vercel.app/'
     link.target = '_blank'
     link.innerText = 'protected by roBOTcheck'
     link.style.color = '#8b949e'
@@ -187,7 +184,7 @@ function initSandbox(){
                 const title = document.createElement('h1');
                 title.textContent = 'Uncertain Heuristics...';
                 const desc = document.createElement('p');
-                desc.textContent = 'Escalating to next challenge round. Please wait...';
+                desc.textContent = 'please try again';
                 container.appendChild(title);
                 container.appendChild(desc);
 
@@ -198,6 +195,8 @@ function initSandbox(){
         })
         .catch(err => console.error(err));
     }
+
+
     function startChallenge(){
         fetch('/challenge?sitekey=' + sitekey).then(res=>res.json()).then(data=>{
             challengeToken=data.challengeToken
@@ -205,8 +204,6 @@ function initSandbox(){
         }).catch(err=>console.error(err))
 
     }
-
-
 
 }
 
