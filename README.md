@@ -1,8 +1,25 @@
 # roBOTcheck
 
-**⚠️ IMPORTANT DISCLAIMER: This is a SATIRICAL, conceptual project. It is perfect for small, low-traffic personal apps (like a personal blog or contact form). It is NOT intended for high-stakes or security-critical applications (like banking, massive enterprise apps, or anything handling sensitive data).**
+**IMPORTANT DISCLAIMER: This is a SATIRICAL, conceptual project. It is perfect for small, low-traffic personal apps (like a personal blog or contact form). It is NOT intended for high-stakes or security-critical applications (like banking, massive enterprise apps, or anything handling sensitive data).**
 
 roBOTcheck is a satirical reverse CAPTCHA that lets humans through while blocking bots. Instead of asking you to click traffic lights, it watches how you move, click, and type. Bots that are too fast, too precise, or too consistent get blocked. Humans, with all their glorious imperfection, pass.
+
+To ensure robustness and prevent automated script bypasses, the system incorporates:
+* **Form Submission Safety (Client-Side Intercept):** Client-side interception stops form submission if the user has not completed the challenge, preventing spamming of backend endpoints.
+* **Telemetry Coordinate Density Check (Server-Side Validation):** Requires a minimum density of **15 coordinates** for mouse kinetics. This blocks bots that try to bypass path analysis by instantaneously teleporting to target coordinates.
+* **Client-Side Anti-Spoofing Flags:** Inspects browser environment parameters (such as `navigator.webdriver`, window object configurations, browser plugins count, and WebGL software-rendering engines) to immediately identify and block automated headless execution (e.g. Playwright, Puppeteer, headless Chrome).
+* **IP-Based Rate Limiting:** Prevents brute-forcing by tracking client IPs and temporarily banning clients for **5 minutes** after **5 attempts in 5 minutes** (returning a `429 Too Many Requests` status).
+
+## Simulation & Validation Runs
+
+Below are live recordings demonstrating how `roBOTcheck` distinguishes between a genuine human and an automated script:
+
+| Human Validation (`recordings/human.gif`) | Automated Playwright Script (`recordings/playwrightScript.gif`) |
+| :---: | :---: |
+| <img src="recordings/human.gif" height="500" alt="Human Validation" /> | <img src="recordings/playwrightScript.gif" height="500" alt="Playwright Script Simulation" /> |
+
+* **Human Validation:** A physical human completing the challenge. Kinetic curves are messy, clicking speed has typical biological variance, and the system easily identifies it as a human, resulting in a successful verification pass.
+* **Automated Playwright Script:** An advanced Playwright automation script attempting to simulate human movements. The server detects the browser's automation flags (`navigator.webdriver`, headless user-agent signature, and WebGL renderer profile), instantly blocking the request with **"Access Denied. Automation signature detected (navigator.webdriver)"**. The parent form prevents any submission and displays **"Verification Required"**.
 
 ---
 
@@ -24,13 +41,13 @@ roBOTcheck runs as two components you deploy yourself:
 
 roBOTcheck is designed to balance user experience with security. Below is a breakdown of when it is effective and its limitations.
 
-### 👍 When It Works (Efficacy & Use Cases)
+### When It Works (Efficacy & Use Cases)
 * **Bulk Automation & Scrapers:** Instantly blocks standard automated scripts, scrapers, and headless browsers (Puppeteer, Playwright, Selenium) that attempt to submit forms directly.
 * **Rate Limiting Protection:** Implements a strict IP rate limiter (**5 attempts in 5 minutes = 5-minute IP ban**) protecting endpoints from brute-force bot spamming.
 * **Frictionless Verification:** Ideal for newsletters, contact forms, or personal blogs where you want to minimize human friction (avoiding annoying "select the traffic light" grids) while filtering out 99% of background internet scripts.
 * **Client-Side Anti-Spoofing:** Actively inspects the client browser environment for automation signatures, checking for `navigator.webdriver`, missing browser engines, and software-rasterized WebGL renderers (e.g., SwiftShader/Mesa).
 
-### ⚠️ Limitations (Security Boundaries)
+### Limitations (Security Boundaries)
 * **Targeted Human Mimicry Bots:** A dedicated attacker who writes a bot script specifically targeted at your page and implements custom Bezier curve mouse kinematics and human-like typing cadence (with randomized flight/dwell delay variations) can potentially bypass the scoring heuristics.
 * **Stealth Frameworks:** Advanced stealth automation plugins (like `puppeteer-extra-plugin-stealth`) that successfully mask the browser environment signature may bypass initial client-side flags.
 * **Human-in-the-Loop Solver Farms:** Like all CAPTCHA architectures, roBOTcheck cannot block actual human workers manually completing the challenges on behalf of a bot script.
