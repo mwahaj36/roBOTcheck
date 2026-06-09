@@ -20,6 +20,23 @@ roBOTcheck runs as two components you deploy yourself:
 
 ---
 
+## Efficacy, Use Cases & Limitations
+
+roBOTcheck is designed to balance user experience with security. Below is a breakdown of when it is effective and its limitations.
+
+### 👍 When It Works (Efficacy & Use Cases)
+* **Bulk Automation & Scrapers:** Instantly blocks standard automated scripts, scrapers, and headless browsers (Puppeteer, Playwright, Selenium) that attempt to submit forms directly.
+* **Rate Limiting Protection:** Implements a strict IP rate limiter (**5 attempts in 5 minutes = 5-minute IP ban**) protecting endpoints from brute-force bot spamming.
+* **Frictionless Verification:** Ideal for newsletters, contact forms, or personal blogs where you want to minimize human friction (avoiding annoying "select the traffic light" grids) while filtering out 99% of background internet scripts.
+* **Client-Side Anti-Spoofing:** Actively inspects the client browser environment for automation signatures, checking for `navigator.webdriver`, missing browser engines, and software-rasterized WebGL renderers (e.g., SwiftShader/Mesa).
+
+### ⚠️ Limitations (Security Boundaries)
+* **Targeted Human Mimicry Bots:** A dedicated attacker who writes a bot script specifically targeted at your page and implements custom Bezier curve mouse kinematics and human-like typing cadence (with randomized flight/dwell delay variations) can potentially bypass the scoring heuristics.
+* **Stealth Frameworks:** Advanced stealth automation plugins (like `puppeteer-extra-plugin-stealth`) that successfully mask the browser environment signature may bypass initial client-side flags.
+* **Human-in-the-Loop Solver Farms:** Like all CAPTCHA architectures, roBOTcheck cannot block actual human workers manually completing the challenges on behalf of a bot script.
+
+---
+
 ## The Challenges & Scoring Mechanics
 
 roBOTcheck doesn't care *if* you complete a challenge; it cares *how* you complete it. Bots are incredibly fast and perfectly precise. Humans are slow, jittery, and inconsistent. The Verification Server uses this biological imperfection to generate a **Robot Score (0-100)**. Lower is more human.
