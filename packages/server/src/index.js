@@ -8,6 +8,7 @@ const { renderWidgetHtml } = require('./routes/widget')
 const { challengeRoute } = require('./routes/challenge')
 const { submitRoute } = require('./routes/submit')
 const { verifyRoute } = require('./routes/verify')
+const { checkRateLimit } = require('./rateLimit')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -46,7 +47,7 @@ app.use('/dist', express.static(distPath))
 
 app.get('/widget', renderWidgetHtml)
 app.get('/challenge', challengeRoute)
-app.post('/submit', submitRoute)
+app.post('/submit', checkRateLimit, submitRoute)
 app.post('/verify', verifyRoute)
 app.get('/health', (req, res) => res.send('OK'))
 app.get('/pateesa',(req,res)=>res.send('very nice car'))

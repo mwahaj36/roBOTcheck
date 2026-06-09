@@ -151,8 +151,8 @@ function overshootDetection(points,clickTarget,clickIndex){
 }
 
 function scoreMousePath(points, clickTargets){
-    if(points.length<5){
-        return 40;
+    if(points.length<15){
+        return 50;
     }
     let score=0;
     score+=scoreFittsLaw(points,clickTargets[0]);

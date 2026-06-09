@@ -35,6 +35,18 @@ export default function Home() {
     // Clear status state
     setStatus({ show: false, type: '', html: '' })
 
+    if (!token) {
+      setStatus({
+        show: true,
+        type: 'error',
+        html: `
+          <h4>Verification Required</h4>
+          <p>Please complete the roBOTcheck challenge before submitting.</p>
+        `
+      })
+      return
+    }
+
     try {
       const res = await fetch('/api/submit-form', {
         method: 'POST',
