@@ -34,21 +34,19 @@ You can name these whatever you want — there is no central registry. They just
 
 ## Step 2 — Run the Verification Server
 
-The server is distributed as a Docker image. This means you do not install Node.js or any dependencies manually — Docker handles everything inside a container.
+Because roBOTcheck requires secret keys and token cryptography, the verification step must happen on a secure backend server. You have two options for running this server:
 
-### Install Docker
+### Option A: Use the Docker Container (Universal & Recommended)
 
-If you do not have Docker, download Docker Desktop from [docker.com](https://docker.com) and install it. Make sure it is running before continuing.
+The server is distributed as a Docker image. This means you do not install Node.js or any dependencies manually — Docker handles everything inside a container. It is perfect if you want to deploy to a VPS, Render, AWS, or Hugging Face Spaces.
 
-### Pull the image
+**1. Pull the image**
 
 ```bash
 docker pull mwahaj36/robotcheck:latest
 ```
 
-This downloads the pre-built server image from Docker Hub to your machine. You only need to do this once (or again when you want to update to a newer version).
-
-### Run the container
+**2. Run the container**
 
 ```bash
 docker run -d -p 3000:3000 \
@@ -59,28 +57,34 @@ docker run -d -p 3000:3000 \
   mwahaj36/robotcheck:latest
 ```
 
-What each part does:
+**3. Verify it is running**
 
-| Part                         | What it does                                                                                                           |
-| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `docker run`                 | Starts a new container from the image                                                                                  |
-| `-d`                         | Runs it in the background so your terminal is not blocked                                                              |
-| `-p 3000:3000`               | Maps port 3000 on your machine to port 3000 inside the container. You will reach the server at `http://localhost:3000` |
-| `-e SECRET=...`              | Sets the internal token signing secret. Replace with your own random string                                            |
-| `-e SECRETKEY=...`           | Sets your private API key. Replace with your own value                                                                 |
-| `-e SITEKEY=...`             | Sets your public site key. Replace with your own value                                                                 |
-| `-e NODE_ENV=production`     | Tells the server it is in production mode, which enforces that all required variables are present                      |
-| `mwahaj36/robotcheck:latest` | The image to run — pulls from Docker Hub                                                                               |
+Open your browser and go to `http://localhost:3000/health`. You should see `OK`.
 
-### Verify it is running
+### Option B: Native Integration (Merge into your backend)
 
-Open your browser and go to:
+If you already have a Node.js backend (like Express, Next.js, or NestJS), you can completely avoid running a second server! 
 
-```
-http://localhost:3000/health
-```
+Instead of using Docker, simply copy the source files from `packages/server/src` in this repository and adapt the routing logic (`/verify`, `/challenge`, `/submit`) directly into your own backend application. 
 
-You should see `OK`. That means the server is up and accepting connections.
+- **Pros:** Zero extra hosting costs. Lower latency. Only one app to manage.
+- **Cons:** Requires manual rewriting if you use a framework other than standard Express, or if you use a language other than JavaScript/TypeScript.
+
+---
+
+## Development vs. Production Environments
+
+When integrating roBOTcheck, your setup will look slightly different depending on whether you are coding locally (Dev) or deployed (Prod):
+
+**During Development:**
+- You will run the Verification Server locally (either via `docker run` or by running `npm run dev --workspace=packages/server` in this repo).
+- In your frontend HTML, you will set `window.ROBOTCHECK_CONFIG.apiUrl = "http://localhost:3000"`.
+- Your backend will verify tokens by making `fetch` requests to `http://localhost:3000/verify`.
+
+**In Production:**
+- You will deploy the Verification Server Docker container to a live cloud host (like Hugging Face Spaces, Render, or a DigitalOcean VPS).
+- In your frontend HTML, you must update the config to point to your live URL: `window.ROBOTCHECK_CONFIG.apiUrl = "https://your-deployed-server.com"`.
+- Your backend will verify tokens by making `fetch` requests to `https://your-deployed-server.com/verify`.
 
 ---
 
