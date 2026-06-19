@@ -25,13 +25,43 @@ function submitRoute(req, res){
 
     // Anti-spoofing environment checks to instantly reject automated browsers
     if (signals && signals.automationFlags) {
-        const { webdriver, pluginsLength, headlessUserAgent, chromeObjectMissing, webglRenderer } = signals.automationFlags;
+        const { webdriver, pluginsLength, headlessUserAgent, chromeObjectMissing, webglRenderer, isWebView } = signals.automationFlags;
         const ua = req.headers['user-agent'] || '';
 
         const isWebdriver = webdriver === true;
         const isHeadlessUA = headlessUserAgent === true || /HeadlessChrome|headless/i.test(ua);
-        const isSuspiciousChrome = pluginsLength === 0 && chromeObjectMissing && /Chrome/i.test(ua);
-        const isSoftwareWebgl = typeof webglRenderer === 'string' && /SwiftShader|Mesa|software/i.test(webglRenderer);
+
+        // Validate WebView claim server-side.
+        // Android WebViews often include BOTH "Chrome" and "Safari" in the UA (inherited from Blink),
+        // so we can't rely on Chrome-without-Safari. Instead we check:
+        //   1. Explicit WebView markers: "wv" token, "Capacitor" tag
+        //   2. Mobile UA pattern: if the UA says Mobile/Android/iPhone AND the client reports
+        //      isWebView + has touch events, it's a real mobile app, not a headless desktop bot.
+        const isMobileUA = /Mobile|Android|iPhone|iPad/i.test(ua);
+        const hasTouchEvents = (signals.touchEvents || 0) > 0;
+
+        const serverConfirmsWebView = isWebView === true && (
+            /wv\b/.test(ua) ||                                          // Android WebView marker  
+            /\bCapacitor\b/i.test(ua) ||                                // Capacitor UA tag
+            isMobileUA                                                  // Any mobile UA with client WebView flag
+        );
+
+        console.log('[WEBVIEW DEBUG]', {
+            isWebView,
+            serverConfirmsWebView,
+            isMobileUA,
+            hasTouchEvents,
+            pluginsLength,
+            chromeObjectMissing,
+            ua: ua.substring(0, 200)
+        });
+
+        // Only flag "suspicious Chrome" if this is NOT a verified WebView context.
+        // Capacitor/Cordova WebViews legitimately have 0 plugins and no window.chrome object.
+        const isSuspiciousChrome = !serverConfirmsWebView && pluginsLength === 0 && chromeObjectMissing && /Chrome/i.test(ua);
+        
+        // Don't flag software WebGL on mobile devices — some low-end phones use software renderers
+        const isSoftwareWebgl = !serverConfirmsWebView && typeof webglRenderer === 'string' && /SwiftShader|Mesa|software/i.test(webglRenderer);
 
         if (isWebdriver || isHeadlessUA || isSuspiciousChrome || isSoftwareWebgl) {
             let reason = 'Suspicious environment telemetry detected.';
@@ -45,7 +75,9 @@ function submitRoute(req, res){
                 headlessUA: isHeadlessUA,
                 suspiciousChrome: isSuspiciousChrome,
                 softwareWebgl: isSoftwareWebgl,
-                webglRenderer
+                webglRenderer,
+                isWebView,
+                serverConfirmsWebView
             });
             return res.json({ verdict: 'robot', reason });
         }
