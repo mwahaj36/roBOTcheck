@@ -18,13 +18,26 @@ const getAutomationFlags = () => {
         webglRenderer = 'error';
     }
 
+    // Detect if running inside a mobile WebView (Capacitor, Cordova, etc.)
+    // WebViews share the same fingerprint as headless Chrome (no plugins, no window.chrome)
+    // but they are legitimate app contexts, not bots.
+    const ua = navigator.userAgent || '';
+    const isWebView = !!(
+        window.Capacitor ||                          // Capacitor global
+        window.cordova ||                            // Cordova global
+        /wv\b/.test(ua) ||                           // Android WebView marker
+        (ua.includes('Mobile') && !ua.includes('Safari') && ua.includes('Chrome')) || // Android WebView (Chrome without Safari token)
+        /\bCapacitor\b/i.test(ua)                    // Capacitor UA tag
+    );
+
     return {
         webdriver: navigator.webdriver || false,
         pluginsLength: navigator.plugins ? navigator.plugins.length : 0,
         languages: navigator.languages ? navigator.languages.length : 0,
         headlessUserAgent: /HeadlessChrome|headless/i.test(navigator.userAgent),
         chromeObjectMissing: !window.chrome,
-        webglRenderer: webglRenderer
+        webglRenderer: webglRenderer,
+        isWebView: isWebView
     };
 };
 
